@@ -4,9 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.net.Uri;
 import android.net.http.AndroidHttpClient;
@@ -28,6 +30,7 @@ public class AsyncHttpClient {
 
         private String mUri;
         private String mEndpoint;
+        private List<BasicNameValuePair> mExtraHeaders;
 
         public SocketIORequest(String uri) {
             this(uri, null);
@@ -38,7 +41,12 @@ public class AsyncHttpClient {
             mUri = Uri.parse(uri).buildUpon().encodedPath("/socket.io/1/").build().toString();
             mEndpoint = endpoint;
         }
+        public SocketIORequest(String uri, String endpoint, List<BasicNameValuePair> extraHeaders) {
 
+            mUri = Uri.parse(uri).buildUpon().encodedPath("/socket.io/1/").build().toString();
+            mEndpoint = endpoint;
+            mExtraHeaders = extraHeaders;
+        }
         public String getUri() {
 
             return mUri;
@@ -47,6 +55,11 @@ public class AsyncHttpClient {
         public String getEndpoint() {
 
             return mEndpoint;
+        }
+        
+        public List<BasicNameValuePair> getExtraHeaders() {
+
+            return mExtraHeaders;
         }
     }
 
@@ -67,6 +80,14 @@ public class AsyncHttpClient {
 
                 AndroidHttpClient httpClient = AndroidHttpClient.newInstance("android-websockets-2.0");
                 HttpPost post = new HttpPost(socketIORequest.getUri());
+                List<BasicNameValuePair> headers = socketIORequest.getExtraHeaders();
+                if(headers != null)
+                {
+                	for(BasicNameValuePair header : headers)
+                	{
+                		post.addHeader(header.getName(), header.getValue());
+                	}
+                }
 
                 try {
                     HttpResponse res = httpClient.execute(post);
