@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.BasicHttpContext;
 
 import android.net.Uri;
 import android.net.http.AndroidHttpClient;
@@ -31,6 +32,7 @@ public class AsyncHttpClient {
         private String mUri;
         private String mEndpoint;
         private List<BasicNameValuePair> mExtraHeaders;
+        private BasicHttpContext mHttpContext;
 
         public SocketIORequest(String uri) {
             this(uri, null);
@@ -38,14 +40,14 @@ public class AsyncHttpClient {
 
         public SocketIORequest(String uri, String endpoint) {
 
-            mUri = Uri.parse(uri).buildUpon().encodedPath("/socket.io/1/").build().toString();
-            mEndpoint = endpoint;
+        	 this(uri, endpoint, null, null);
         }
-        public SocketIORequest(String uri, String endpoint, List<BasicNameValuePair> extraHeaders) {
+        public SocketIORequest(String uri, String endpoint, BasicHttpContext httpContext, List<BasicNameValuePair> extraHeaders) {
 
             mUri = Uri.parse(uri).buildUpon().encodedPath("/socket.io/1/").build().toString();
             mEndpoint = endpoint;
             mExtraHeaders = extraHeaders;
+            mHttpContext = httpContext;
         }
         public String getUri() {
 
@@ -60,6 +62,11 @@ public class AsyncHttpClient {
         public List<BasicNameValuePair> getExtraHeaders() {
 
             return mExtraHeaders;
+        }
+        
+        public BasicHttpContext getHttpContext() {
+
+            return mHttpContext;
         }
     }
 
@@ -90,7 +97,7 @@ public class AsyncHttpClient {
                 }
 
                 try {
-                    HttpResponse res = httpClient.execute(post);
+                    HttpResponse res = httpClient.execute(post, socketIORequest.getHttpContext());
                     String responseString = readToEnd(res.getEntity().getContent());
 
                     if (stringCallback != null) {
